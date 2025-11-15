@@ -1,0 +1,1914 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Хаместер Комбат</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        :root {
+            --primary: #FF6B35;
+            --secondary: #4ECDC4;
+            --dark: #292F36;
+            --light: #F7FFF7;
+            --danger: #FF6B6B;
+            --success: #06D6A0;
+            --warning: #FFD166;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: var(--light);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 100%;
+            padding: 10px;
+        }
+
+        .screen {
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        /* Header Styles */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 15px;
+            background: rgba(41, 47, 54, 0.8);
+            border-radius: 15px;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .player-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .player-avatar {
+            width: 50px;
+            height: 50px;
+            background: var(--primary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+
+        .player-stats {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .player-name {
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        .player-level {
+            font-size: 14px;
+            color: var(--secondary);
+        }
+
+        .currency-display {
+            display: flex;
+            gap: 10px;
+        }
+
+        .currency {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            padding: 5px 10px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+        }
+
+        /* Button Styles */
+        .btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 10px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-size: 16px;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: var(--secondary);
+            color: white;
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+
+        .btn-warning {
+            background: var(--warning);
+            color: var(--dark);
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn-large {
+            padding: 15px 25px;
+            font-size: 18px;
+            width: 100%;
+            margin-bottom: 15px;
+        }
+
+        /* Menu Styles */
+        .menu-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .menu-card {
+            background: rgba(41, 47, 54, 0.8);
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .menu-card:hover {
+            transform: translateY(-5px);
+            background: rgba(41, 47, 54, 0.9);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .menu-icon {
+            font-size: 40px;
+            margin-bottom: 10px;
+        }
+
+        /* Battle Screen Styles */
+        .battle-container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .battle-field {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 200px;
+            background: rgba(41, 47, 54, 0.6);
+            border-radius: 15px;
+            padding: 20px;
+            position: relative;
+        }
+
+        .character {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .character-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            background: rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .player-character {
+            background: rgba(255, 107, 53, 0.2);
+        }
+
+        .enemy-character {
+            background: rgba(255, 107, 107, 0.2);
+        }
+
+        .health-bar {
+            width: 100px;
+            height: 10px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 5px;
+            overflow: hidden;
+        }
+
+        .health-fill {
+            height: 100%;
+            background: var(--success);
+            transition: width 0.5s ease;
+        }
+
+        .enemy-health-fill {
+            background: var(--danger);
+        }
+
+        .battle-log {
+            height: 150px;
+            background: rgba(41, 47, 54, 0.8);
+            border-radius: 10px;
+            padding: 10px;
+            overflow-y: auto;
+            font-size: 14px;
+        }
+
+        .battle-actions {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+        }
+
+        .action-btn {
+            padding: 15px 10px;
+            border: none;
+            border-radius: 10px;
+            background: rgba(41, 47, 54, 0.8);
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .action-btn:hover {
+            background: rgba(41, 47, 54, 1);
+            transform: translateY(-3px);
+        }
+
+        /* Shop Styles */
+        .shop-categories {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            overflow-x: auto;
+            padding-bottom: 10px;
+        }
+
+        .category-btn {
+            padding: 10px 15px;
+            background: rgba(41, 47, 54, 0.8);
+            border: none;
+            border-radius: 20px;
+            color: white;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
+        .category-btn.active {
+            background: var(--primary);
+        }
+
+        .shop-items {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+
+        .shop-item {
+            background: rgba(41, 47, 54, 0.8);
+            border-radius: 15px;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .item-icon {
+            font-size: 30px;
+        }
+
+        .item-rarity {
+            padding: 3px 8px;
+            border-radius: 10px;
+            font-size: 12px;
+        }
+
+        .rarity-common {
+            background: #95a5a6;
+        }
+
+        .rarity-rare {
+            background: #3498db;
+        }
+
+        .rarity-epic {
+            background: #9b59b6;
+        }
+
+        .rarity-legendary {
+            background: #f1c40f;
+        }
+
+        .item-price {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        /* Wallet Styles */
+        .wallet-container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .wallet-balances {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+
+        .balance-card {
+            background: rgba(41, 47, 54, 0.8);
+            border-radius: 15px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .balance-icon {
+            font-size: 30px;
+        }
+
+        .balance-amount {
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .wallet-actions {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+
+        .transaction-history {
+            background: rgba(41, 47, 54, 0.8);
+            border-radius: 15px;
+            padding: 15px;
+        }
+
+        .transaction-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* Animations */
+        @keyframes damage {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); background-color: rgba(255, 107, 107, 0.5); }
+            100% { transform: scale(1); }
+        }
+
+        @keyframes heal {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); background-color: rgba(6, 214, 160, 0.5); }
+            100% { transform: scale(1); }
+        }
+
+        @keyframes critical {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.3); background-color: rgba(255, 209, 102, 0.7); }
+            100% { transform: scale(1); }
+        }
+
+        .damage-animation {
+            animation: damage 0.5s ease;
+        }
+
+        .heal-animation {
+            animation: heal 0.5s ease;
+        }
+
+        .critical-animation {
+            animation: critical 0.5s ease;
+        }
+
+        /* Responsive Design */
+        @media (min-width: 768px) {
+            .container {
+                max-width: 600px;
+                margin: 0 auto;
+            }
+            
+            .menu-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+            
+            .shop-items {
+                grid-template-columns: repeat(3, 1fr);
+            }
+            
+            .battle-actions {
+                grid-template-columns: repeat(6, 1fr);
+            }
+        }
+
+        /* Inventory Styles */
+        .inventory-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            overflow-x: auto;
+            padding-bottom: 10px;
+        }
+
+        .tab-btn {
+            padding: 10px 15px;
+            background: rgba(41, 47, 54, 0.8);
+            border: none;
+            border-radius: 20px;
+            color: white;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
+        .tab-btn.active {
+            background: var(--primary);
+        }
+
+        .inventory-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+        }
+
+        .inventory-item {
+            background: rgba(41, 47, 54, 0.8);
+            border-radius: 15px;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            position: relative;
+        }
+
+        .equipped-badge {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: var(--success);
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+        }
+
+        /* Settings Styles */
+        .settings-section {
+            background: rgba(41, 47, 54, 0.8);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .settings-title {
+            font-size: 18px;
+            margin-bottom: 15px;
+            color: var(--secondary);
+        }
+
+        .setting-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 24px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(255, 255, 255, 0.2);
+            transition: .4s;
+            border-radius: 24px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: var(--success);
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(26px);
+        }
+
+        /* Achievements Styles */
+        .achievements-grid {
+            display: grid;
+            grid-template-columns: repeat(1, 1fr);
+            gap: 15px;
+        }
+
+        @media (min-width: 768px) {
+            .achievements-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        .achievement-card {
+            background: rgba(41, 47, 54, 0.8);
+            border-radius: 15px;
+            padding: 15px;
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .achievement-icon {
+            font-size: 30px;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+        }
+
+        .achievement-info {
+            flex: 1;
+        }
+
+        .achievement-progress {
+            height: 5px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 5px;
+            margin-top: 5px;
+            overflow: hidden;
+        }
+
+        .achievement-progress-fill {
+            height: 100%;
+            background: var(--success);
+            transition: width 0.5s ease;
+        }
+
+        .achievement-locked {
+            opacity: 0.5;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Главное меню -->
+        <div id="main-menu" class="screen active">
+            <div class="header">
+                <div class="player-info">
+                    <div class="player-avatar">🐹</div>
+                    <div class="player-stats">
+                        <div class="player-name">Хаместер</div>
+                        <div class="player-level">Уровень <span id="player-level">1</span></div>
+                    </div>
+                </div>
+                <div class="currency-display">
+                    <div class="currency">🪙 <span id="coins-balance">100</span></div>
+                    <div class="currency">💎 <span id="crystals-balance">10</span></div>
+                </div>
+            </div>
+
+            <div class="menu-grid">
+                <div class="menu-card" onclick="showScreen('battle-screen')">
+                    <div class="menu-icon">⚔️</div>
+                    <div>Арена битв</div>
+                </div>
+                <div class="menu-card" onclick="showScreen('shop-screen')">
+                    <div class="menu-icon">🏪</div>
+                    <div>Магазин</div>
+                </div>
+                <div class="menu-card" onclick="showScreen('inventory-screen')">
+                    <div class="menu-icon">🎒</div>
+                    <div>Инвентарь</div>
+                </div>
+                <div class="menu-card" onclick="showScreen('wallet-screen')">
+                    <div class="menu-icon">💰</div>
+                    <div>Кошелек</div>
+                </div>
+                <div class="menu-card" onclick="showScreen('achievements-screen')">
+                    <div class="menu-icon">🏆</div>
+                    <div>Достижения</div>
+                </div>
+                <div class="menu-card" onclick="showScreen('settings-screen')">
+                    <div class="menu-icon">⚙️</div>
+                    <div>Настройки</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Экран битвы -->
+        <div id="battle-screen" class="screen">
+            <div class="header">
+                <button class="btn btn-secondary" onclick="showScreen('main-menu')">← Назад</button>
+                <div class="currency-display">
+                    <div class="currency">🪙 <span id="battle-coins">100</span></div>
+                    <div class="currency">💎 <span id="battle-crystals">10</span></div>
+                </div>
+            </div>
+
+            <div class="battle-container">
+                <div class="battle-field">
+                    <div class="character">
+                        <div class="character-avatar player-character" id="player-avatar">🐹</div>
+                        <div class="health-bar">
+                            <div class="health-fill" id="player-health" style="width: 100%;"></div>
+                        </div>
+                        <div>Хаместер</div>
+                    </div>
+                    <div class="character">
+                        <div class="character-avatar enemy-character" id="enemy-avatar">🐭</div>
+                        <div class="health-bar">
+                            <div class="health-fill enemy-health-fill" id="enemy-health" style="width: 100%;"></div>
+                        </div>
+                        <div id="enemy-name">Крыса</div>
+                    </div>
+                </div>
+
+                <div class="battle-log" id="battle-log">
+                    <div>Битва началась! Хаместер против Крысы!</div>
+                </div>
+
+                <div class="battle-actions">
+                    <button class="action-btn" onclick="playerAction('attack')">
+                        <div>⚔️</div>
+                        <div>Атака</div>
+                    </button>
+                    <button class="action-btn" onclick="playerAction('defend')">
+                        <div>🛡️</div>
+                        <div>Защита</div>
+                    </button>
+                    <button class="action-btn" onclick="playerAction('super')">
+                        <div>💥</div>
+                        <div>Супер-удар</div>
+                    </button>
+                    <button class="action-btn" onclick="playerAction('heal')">
+                        <div>❤️</div>
+                        <div>Лечение</div>
+                    </button>
+                    <button class="action-btn" onclick="playerAction('item')">
+                        <div>🎒</div>
+                        <div>Предметы</div>
+                    </button>
+                    <button class="action-btn" onclick="playerAction('escape')">
+                        <div>🏃</div>
+                        <div>Побег</div>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Магазин -->
+        <div id="shop-screen" class="screen">
+            <div class="header">
+                <button class="btn btn-secondary" onclick="showScreen('main-menu')">← Назад</button>
+                <div class="currency-display">
+                    <div class="currency">🪙 <span id="shop-coins">100</span></div>
+                    <div class="currency">💎 <span id="shop-crystals">10</span></div>
+                </div>
+            </div>
+
+            <div class="shop-categories">
+                <button class="category-btn active" onclick="changeShopCategory('weapons')">⚔️ Оружие</button>
+                <button class="category-btn" onclick="changeShopCategory('armor')">🛡️ Броня</button>
+                <button class="category-btn" onclick="changeShopCategory('potions')">🧪 Зелья</button>
+                <button class="category-btn" onclick="changeShopCategory('special')">🎯 Особые</button>
+                <button class="category-btn" onclick="changeShopCategory('premium')">💎 Премиум</button>
+            </div>
+
+            <div class="shop-items" id="shop-items">
+                <!-- Items will be loaded here by JavaScript -->
+            </div>
+        </div>
+
+        <!-- Инвентарь -->
+        <div id="inventory-screen" class="screen">
+            <div class="header">
+                <button class="btn btn-secondary" onclick="showScreen('main-menu')">← Назад</button>
+                <div class="currency-display">
+                    <div class="currency">🪙 <span id="inventory-coins">100</span></div>
+                    <div class="currency">💎 <span id="inventory-crystals">10</span></div>
+                </div>
+            </div>
+
+            <div class="inventory-tabs">
+                <button class="tab-btn active" onclick="changeInventoryTab('weapons')">⚔️ Оружие</button>
+                <button class="tab-btn" onclick="changeInventoryTab('armor')">🛡️ Броня</button>
+                <button class="tab-btn" onclick="changeInventoryTab('potions')">🧪 Зелья</button>
+                <button class="tab-btn" onclick="changeInventoryTab('special')">🎯 Особые</button>
+            </div>
+
+            <div class="inventory-grid" id="inventory-items">
+                <!-- Inventory items will be loaded here by JavaScript -->
+            </div>
+        </div>
+
+        <!-- Кошелек -->
+        <div id="wallet-screen" class="screen">
+            <div class="header">
+                <button class="btn btn-secondary" onclick="showScreen('main-menu')">← Назад</button>
+                <div class="currency-display">
+                    <div class="currency">🪙 <span id="wallet-coins">100</span></div>
+                    <div class="currency">💎 <span id="wallet-crystals">10</span></div>
+                </div>
+            </div>
+
+            <div class="wallet-container">
+                <div class="wallet-balances">
+                    <div class="balance-card">
+                        <div class="balance-icon">⚡</div>
+                        <div>TON</div>
+                        <div class="balance-amount" id="ton-balance">0</div>
+                    </div>
+                    <div class="balance-card">
+                        <div class="balance-icon">💵</div>
+                        <div>USDT</div>
+                        <div class="balance-amount" id="usdt-balance">0</div>
+                    </div>
+                </div>
+
+                <div class="wallet-actions">
+                    <button class="btn btn-primary" onclick="depositTON()">Пополнить TON</button>
+                    <button class="btn btn-primary" onclick="depositUSDT()">Пополнить USDT</button>
+                    <button class="btn btn-secondary" onclick="withdrawTON()">Вывести TON</button>
+                    <button class="btn btn-secondary" onclick="withdrawUSDT()">Вывести USDT</button>
+                </div>
+
+                <div class="transaction-history">
+                    <h3>История транзакций</h3>
+                    <div id="transaction-list">
+                        <!-- Transactions will be loaded here by JavaScript -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Достижения -->
+        <div id="achievements-screen" class="screen">
+            <div class="header">
+                <button class="btn btn-secondary" onclick="showScreen('main-menu')">← Назад</button>
+                <div class="currency-display">
+                    <div class="currency">🪙 <span id="achievements-coins">100</span></div>
+                    <div class="currency">💎 <span id="achievements-crystals">10</span></div>
+                </div>
+            </div>
+
+            <div class="achievements-grid" id="achievements-list">
+                <!-- Achievements will be loaded here by JavaScript -->
+            </div>
+        </div>
+
+        <!-- Настройки -->
+        <div id="settings-screen" class="screen">
+            <div class="header">
+                <button class="btn btn-secondary" onclick="showScreen('main-menu')">← Назад</button>
+                <div class="currency-display">
+                    <div class="currency">🪙 <span id="settings-coins">100</span></div>
+                    <div class="currency">💎 <span id="settings-crystals">10</span></div>
+                </div>
+            </div>
+
+            <div class="settings-section">
+                <div class="settings-title">Звук и музыка</div>
+                <div class="setting-item">
+                    <div>Фоновая музыка</div>
+                    <label class="switch">
+                        <input type="checkbox" id="music-toggle" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <div class="setting-item">
+                    <div>Звуковые эффекты</div>
+                    <label class="switch">
+                        <input type="checkbox" id="sound-toggle" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="settings-section">
+                <div class="settings-title">Уведомления</div>
+                <div class="setting-item">
+                    <div>Игровые уведомления</div>
+                    <label class="switch">
+                        <input type="checkbox" id="notifications-toggle" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <div class="setting-item">
+                    <div>Ежедневные бонусы</div>
+                    <label class="switch">
+                        <input type="checkbox" id="bonus-toggle" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="settings-section">
+                <div class="settings-title">Игровой процесс</div>
+                <div class="setting-item">
+                    <div>Автосохранение</div>
+                    <label class="switch">
+                        <input type="checkbox" id="autosave-toggle" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <div class="setting-item">
+                    <div>Подтверждение выхода</div>
+                    <label class="switch">
+                        <input type="checkbox" id="confirm-exit-toggle" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+
+            <button class="btn btn-large btn-primary" onclick="saveGame()">Сохранить игру</button>
+            <button class="btn btn-large btn-secondary" onclick="loadGame()">Загрузить игру</button>
+            <button class="btn btn-large btn-danger" onclick="resetGame()">Сбросить прогресс</button>
+        </div>
+    </div>
+
+    <script>
+        // Инициализация Telegram Web App
+        let tg = window.Telegram?.WebApp;
+        
+        // Если приложение запущено в Telegram
+        if (tg) {
+            tg.ready();
+            tg.expand();
+            tg.enableClosingConfirmation();
+        }
+
+        // Игровые данные
+        let gameData = {
+            player: {
+                level: 1,
+                exp: 0,
+                expToNextLevel: 100,
+                health: 100,
+                maxHealth: 100,
+                attack: 10,
+                defense: 5,
+                speed: 10,
+                critChance: 5,
+                critDamage: 150
+            },
+            currencies: {
+                coins: 100,
+                crystals: 10,
+                ton: 0,
+                usdt: 0
+            },
+            inventory: {
+                weapons: [],
+                armor: [],
+                potions: [
+                    { id: 'potion1', name: 'Малое зелье здоровья', icon: '🧪', effect: 'heal', value: 30, quantity: 3 }
+                ],
+                special: []
+            },
+            equipped: {
+                weapon: null,
+                armor: null
+            },
+            achievements: [
+                { id: 'first_win', name: 'Первая победа', description: 'Одолейте первого врага', icon: '🏆', progress: 0, maxProgress: 1, completed: false, reward: { coins: 50, crystals: 5 } },
+                { id: 'level_10', name: 'Опытный боец', description: 'Достигните 10 уровня', icon: '⭐', progress: 1, maxProgress: 10, completed: false, reward: { coins: 100, crystals: 10 } },
+                { id: 'rich_hamster', name: 'Богатый хомяк', description: 'Накопите 1000 монет', icon: '💰', progress: 100, maxProgress: 1000, completed: false, reward: { coins: 200, crystals: 20 } }
+            ],
+            battle: {
+                currentEnemy: null,
+                playerDefending: false,
+                enemyDefending: false,
+                battleLog: []
+            },
+            settings: {
+                music: true,
+                sound: true,
+                notifications: true,
+                dailyBonus: true,
+                autosave: true,
+                confirmExit: true
+            },
+            transactions: []
+        };
+
+        // Враги
+        const enemies = [
+            { id: 'rat', name: 'Крыса', icon: '🐭', level: 1, health: 50, maxHealth: 50, attack: 8, defense: 3, speed: 12, expReward: 20, coinReward: 10 },
+            { id: 'snake', name: 'Змея', icon: '🐍', level: 3, health: 70, maxHealth: 70, attack: 12, defense: 5, speed: 15, expReward: 35, coinReward: 20 },
+            { id: 'fox', name: 'Лиса', icon: '🦊', level: 5, health: 100, maxHealth: 100, attack: 15, defense: 8, speed: 18, expReward: 50, coinReward: 30 }
+        ];
+
+        // Предметы в магазине
+        const shopItems = {
+            weapons: [
+                { id: 'wooden_sword', name: 'Деревянный меч', icon: '⚔️', rarity: 'common', price: 50, attack: 5, type: 'weapon' },
+                { id: 'iron_sword', name: 'Железный меч', icon: '⚔️', rarity: 'rare', price: 150, attack: 10, type: 'weapon' },
+                { id: 'steel_sword', name: 'Стальной меч', icon: '⚔️', rarity: 'epic', price: 300, attack: 15, type: 'weapon' }
+            ],
+            armor: [
+                { id: 'leather_armor', name: 'Кожаная броня', icon: '🛡️', rarity: 'common', price: 50, defense: 5, type: 'armor' },
+                { id: 'chain_armor', name: 'Кольчуга', icon: '🛡️', rarity: 'rare', price: 150, defense: 10, type: 'armor' },
+                { id: 'plate_armor', name: 'Латная броня', icon: '🛡️', rarity: 'epic', price: 300, defense: 15, type: 'armor' }
+            ],
+            potions: [
+                { id: 'small_heal_potion', name: 'Малое зелье здоровья', icon: '🧪', rarity: 'common', price: 20, effect: 'heal', value: 30, type: 'potion' },
+                { id: 'medium_heal_potion', name: 'Среднее зелье здоровья', icon: '🧪', rarity: 'rare', price: 50, effect: 'heal', value: 60, type: 'potion' },
+                { id: 'large_heal_potion', name: 'Большое зелье здоровья', icon: '🧪', rarity: 'epic', price: 100, effect: 'heal', value: 100, type: 'potion' }
+            ],
+            special: [
+                { id: 'attack_boost', name: 'Усиление атаки', icon: '💪', rarity: 'rare', price: 80, effect: 'attack_boost', value: 10, duration: 3, type: 'special' },
+                { id: 'defense_boost', name: 'Усиление защиты', icon: '🛡️', rarity: 'rare', price: 80, effect: 'defense_boost', value: 10, duration: 3, type: 'special' },
+                { id: 'speed_boost', name: 'Усиление скорости', icon: '⚡', rarity: 'epic', price: 120, effect: 'speed_boost', value: 10, duration: 3, type: 'special' }
+            ],
+            premium: [
+                { id: 'crystal_pack_1', name: 'Набор кристаллов (10)', icon: '💎', rarity: 'rare', price: 1, currency: 'ton', value: 10, type: 'premium' },
+                { id: 'crystal_pack_2', name: 'Набор кристаллов (50)', icon: '💎', rarity: 'epic', price: 4, currency: 'ton', value: 50, type: 'premium' },
+                { id: 'crystal_pack_3', name: 'Набор кристаллов (100)', icon: '💎', rarity: 'legendary', price: 7, currency: 'ton', value: 100, type: 'premium' }
+            ]
+        };
+
+        // Функции для работы с экранами
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(screen => {
+                screen.classList.remove('active');
+            });
+            document.getElementById(screenId).classList.add('active');
+            
+            // Обновляем балансы на всех экранах
+            updateBalances();
+            
+            // Загружаем контент для конкретного экрана
+            if (screenId === 'shop-screen') {
+                loadShopItems('weapons');
+            } else if (screenId === 'inventory-screen') {
+                loadInventoryItems('weapons');
+            } else if (screenId === 'achievements-screen') {
+                loadAchievements();
+            } else if (screenId === 'wallet-screen') {
+                loadTransactions();
+            } else if (screenId === 'battle-screen') {
+                startBattle();
+            }
+        }
+
+        function updateBalances() {
+            // Обновляем балансы на всех экранах
+            const coinsElements = document.querySelectorAll('#coins-balance, #battle-coins, #shop-coins, #inventory-coins, #wallet-coins, #achievements-coins, #settings-coins');
+            const crystalsElements = document.querySelectorAll('#crystals-balance, #battle-crystals, #shop-crystals, #inventory-crystals, #wallet-crystals, #achievements-crystals, #settings-crystals');
+            
+            coinsElements.forEach(el => {
+                el.textContent = gameData.currencies.coins;
+            });
+            
+            crystalsElements.forEach(el => {
+                el.textContent = gameData.currencies.crystals;
+            });
+            
+            // Обновляем уровень игрока
+            document.getElementById('player-level').textContent = gameData.player.level;
+            
+            // Обновляем балансы TON и USDT
+            document.getElementById('ton-balance').textContent = gameData.currencies.ton;
+            document.getElementById('usdt-balance').textContent = gameData.currencies.usdt;
+        }
+
+        // Функции для магазина
+        function changeShopCategory(category) {
+            // Убираем активный класс у всех кнопок категорий
+            document.querySelectorAll('.category-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // Добавляем активный класс к выбранной кнопке
+            event.target.classList.add('active');
+            
+            // Загружаем предметы выбранной категории
+            loadShopItems(category);
+        }
+
+        function loadShopItems(category) {
+            const shopItemsContainer = document.getElementById('shop-items');
+            shopItemsContainer.innerHTML = '';
+            
+            const items = shopItems[category];
+            
+            items.forEach(item => {
+                const itemElement = document.createElement('div');
+                itemElement.className = 'shop-item';
+                
+                let priceHTML = '';
+                if (item.currency === 'ton') {
+                    priceHTML = `<div class="item-price">
+                        <span>${item.price} ⚡ TON</span>
+                        <button class="btn btn-primary" onclick="buyItem('${item.id}', '${category}')">Купить</button>
+                    </div>`;
+                } else {
+                    priceHTML = `<div class="item-price">
+                        <span>${item.price} 🪙</span>
+                        <button class="btn btn-primary" onclick="buyItem('${item.id}', '${category}')">Купить</button>
+                    </div>`;
+                }
+                
+                itemElement.innerHTML = `
+                    <div class="item-header">
+                        <div class="item-icon">${item.icon}</div>
+                        <div class="item-rarity rarity-${item.rarity}">${getRarityName(item.rarity)}</div>
+                    </div>
+                    <div class="item-name">${item.name}</div>
+                    ${item.effect ? `<div class="item-effect">${getEffectDescription(item)}</div>` : ''}
+                    ${priceHTML}
+                `;
+                
+                shopItemsContainer.appendChild(itemElement);
+            });
+        }
+
+        function getRarityName(rarity) {
+            const rarityNames = {
+                'common': 'Обычный',
+                'rare': 'Редкий',
+                'epic': 'Эпический',
+                'legendary': 'Легендарный'
+            };
+            return rarityNames[rarity] || rarity;
+        }
+
+        function getEffectDescription(item) {
+            if (item.effect === 'heal') {
+                return `Восстанавливает ${item.value} здоровья`;
+            } else if (item.effect === 'attack_boost') {
+                return `Увеличивает атаку на ${item.value} на ${item.duration} хода`;
+            } else if (item.effect === 'defense_boost') {
+                return `Увеличивает защиту на ${item.value} на ${item.duration} хода`;
+            } else if (item.effect === 'speed_boost') {
+                return `Увеличивает скорость на ${item.value} на ${item.duration} хода`;
+            }
+            return '';
+        }
+
+        function buyItem(itemId, category) {
+            const item = shopItems[category].find(i => i.id === itemId);
+            
+            if (!item) return;
+            
+            // Проверяем, достаточно ли валюты
+            if (item.currency === 'ton') {
+                if (gameData.currencies.ton < item.price) {
+                    alert('Недостаточно TON для покупки!');
+                    return;
+                }
+                gameData.currencies.ton -= item.price;
+            } else {
+                if (gameData.currencies.coins < item.price) {
+                    alert('Недостаточно монет для покупки!');
+                    return;
+                }
+                gameData.currencies.coins -= item.price;
+            }
+            
+            // Добавляем предмет в инвентарь
+            if (item.type === 'weapon') {
+                gameData.inventory.weapons.push({ ...item, equipped: false });
+            } else if (item.type === 'armor') {
+                gameData.inventory.armor.push({ ...item, equipped: false });
+            } else if (item.type === 'potion') {
+                // Проверяем, есть ли уже такое зелье
+                const existingPotion = gameData.inventory.potions.find(p => p.id === item.id);
+                if (existingPotion) {
+                    existingPotion.quantity += 1;
+                } else {
+                    gameData.inventory.potions.push({ ...item, quantity: 1 });
+                }
+            } else if (item.type === 'special') {
+                gameData.inventory.special.push({ ...item, quantity: 1 });
+            } else if (item.type === 'premium') {
+                gameData.currencies.crystals += item.value;
+            }
+            
+            // Обновляем балансы
+            updateBalances();
+            
+            // Показываем сообщение об успешной покупке
+            alert(`Вы успешно приобрели: ${item.name}`);
+            
+            // Сохраняем игру
+            saveGame();
+        }
+
+        // Функции для инвентаря
+        function changeInventoryTab(tab) {
+            // Убираем активный класс у всех вкладок
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // Добавляем активный класс к выбранной вкладке
+            event.target.classList.add('active');
+            
+            // Загружаем предметы выбранной вкладки
+            loadInventoryItems(tab);
+        }
+
+        function loadInventoryItems(tab) {
+            const inventoryContainer = document.getElementById('inventory-items');
+            inventoryContainer.innerHTML = '';
+            
+            const items = gameData.inventory[tab];
+            
+            if (items.length === 0) {
+                inventoryContainer.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; padding: 20px;">Инвентарь пуст</div>';
+                return;
+            }
+            
+            items.forEach((item, index) => {
+                const itemElement = document.createElement('div');
+                itemElement.className = 'inventory-item';
+                
+                let actionButton = '';
+                if (tab === 'weapons' || tab === 'armor') {
+                    if (item.equipped) {
+                        actionButton = `<button class="btn btn-secondary" onclick="unequipItem('${tab}', ${index})">Снять</button>`;
+                    } else {
+                        actionButton = `<button class="btn btn-primary" onclick="equipItem('${tab}', ${index})">Надеть</button>`;
+                    }
+                } else if (tab === 'potions' || tab === 'special') {
+                    actionButton = `<button class="btn btn-primary" onclick="useItem('${tab}', ${index})">Использовать</button>`;
+                }
+                
+                itemElement.innerHTML = `
+                    ${item.equipped ? '<div class="equipped-badge">✓</div>' : ''}
+                    <div class="item-icon">${item.icon}</div>
+                    <div class="item-name">${item.name}</div>
+                    ${item.effect ? `<div class="item-effect">${getEffectDescription(item)}</div>` : ''}
+                    ${item.quantity ? `<div class="item-quantity">Количество: ${item.quantity}</div>` : ''}
+                    ${actionButton}
+                `;
+                
+                inventoryContainer.appendChild(itemElement);
+            });
+        }
+
+        function equipItem(type, index) {
+            const item = gameData.inventory[type][index];
+            
+            // Снимаем текущий экипированный предмет
+            if (type === 'weapons' && gameData.equipped.weapon !== null) {
+                const currentWeaponIndex = gameData.inventory.weapons.findIndex(w => w.id === gameData.equipped.weapon.id);
+                if (currentWeaponIndex !== -1) {
+                    gameData.inventory.weapons[currentWeaponIndex].equipped = false;
+                }
+            } else if (type === 'armor' && gameData.equipped.armor !== null) {
+                const currentArmorIndex = gameData.inventory.armor.findIndex(a => a.id === gameData.equipped.armor.id);
+                if (currentArmorIndex !== -1) {
+                    gameData.inventory.armor[currentArmorIndex].equipped = false;
+                }
+            }
+            
+            // Экипируем новый предмет
+            item.equipped = true;
+            
+            if (type === 'weapons') {
+                gameData.equipped.weapon = item;
+                // Увеличиваем атаку игрока
+                gameData.player.attack += item.attack;
+            } else if (type === 'armor') {
+                gameData.equipped.armor = item;
+                // Увеличиваем защиту игрока
+                gameData.player.defense += item.defense;
+            }
+            
+            // Перезагружаем инвентарь
+            loadInventoryItems(type);
+            
+            // Сохраняем игру
+            saveGame();
+            
+            alert(`Вы экипировали: ${item.name}`);
+        }
+
+        function unequipItem(type, index) {
+            const item = gameData.inventory[type][index];
+            
+            // Снимаем предмет
+            item.equipped = false;
+            
+            if (type === 'weapons') {
+                // Уменьшаем атаку игрока
+                gameData.player.attack -= item.attack;
+                gameData.equipped.weapon = null;
+            } else if (type === 'armor') {
+                // Уменьшаем защиту игрока
+                gameData.player.defense -= item.defense;
+                gameData.equipped.armor = null;
+            }
+            
+            // Перезагружаем инвентарь
+            loadInventoryItems(type);
+            
+            // Сохраняем игру
+            saveGame();
+            
+            alert(`Вы сняли: ${item.name}`);
+        }
+
+        function useItem(type, index) {
+            const item = gameData.inventory[type][index];
+            
+            if (type === 'potions') {
+                if (item.effect === 'heal') {
+                    // Восстанавливаем здоровье
+                    gameData.player.health = Math.min(gameData.player.health + item.value, gameData.player.maxHealth);
+                    
+                    // Уменьшаем количество зелий
+                    item.quantity -= 1;
+                    
+                    // Если зелья закончились, удаляем их из инвентаря
+                    if (item.quantity <= 0) {
+                        gameData.inventory.potions.splice(index, 1);
+                    }
+                    
+                    alert(`Вы использовали ${item.name} и восстановили ${item.value} здоровья!`);
+                }
+            } else if (type === 'special') {
+                // Использование особых предметов (баффов)
+                // В реальной игре здесь была бы более сложная логика
+                item.quantity -= 1;
+                
+                if (item.quantity <= 0) {
+                    gameData.inventory.special.splice(index, 1);
+                }
+                
+                alert(`Вы использовали ${item.name}!`);
+            }
+            
+            // Перезагружаем инвентарь
+            loadInventoryItems(type);
+            
+            // Сохраняем игру
+            saveGame();
+        }
+
+        // Функции для битвы
+        function startBattle() {
+            // Выбираем случайного врага
+            const randomEnemyIndex = Math.floor(Math.random() * enemies.length);
+            gameData.battle.currentEnemy = { ...enemies[randomEnemyIndex] };
+            
+            // Сбрасываем состояние защиты
+            gameData.battle.playerDefending = false;
+            gameData.battle.enemyDefending = false;
+            
+            // Очищаем лог битвы
+            gameData.battle.battleLog = [];
+            addBattleLog(`Битва началась! Хаместер против ${gameData.battle.currentEnemy.name}!`);
+            
+            // Обновляем интерфейс битвы
+            updateBattleUI();
+        }
+
+        function updateBattleUI() {
+            // Обновляем здоровье игрока и врага
+            const playerHealthPercent = (gameData.player.health / gameData.player.maxHealth) * 100;
+            const enemyHealthPercent = (gameData.battle.currentEnemy.health / gameData.battle.currentEnemy.maxHealth) * 100;
+            
+            document.getElementById('player-health').style.width = `${playerHealthPercent}%`;
+            document.getElementById('enemy-health').style.width = `${enemyHealthPercent}%`;
+            
+            // Обновляем аватар врага и имя
+            document.getElementById('enemy-avatar').textContent = gameData.battle.currentEnemy.icon;
+            document.getElementById('enemy-name').textContent = gameData.battle.currentEnemy.name;
+            
+            // Обновляем лог битвы
+            const battleLogElement = document.getElementById('battle-log');
+            battleLogElement.innerHTML = '';
+            
+            gameData.battle.battleLog.forEach(logEntry => {
+                const logElement = document.createElement('div');
+                logElement.textContent = logEntry;
+                battleLogElement.appendChild(logElement);
+            });
+            
+            // Прокручиваем лог вниз
+            battleLogElement.scrollTop = battleLogElement.scrollHeight;
+        }
+
+        function addBattleLog(message) {
+            const timestamp = new Date().toLocaleTimeString();
+            gameData.battle.battleLog.push(`[${timestamp}] ${message}`);
+            
+            // Ограничиваем лог 50 сообщениями
+            if (gameData.battle.battleLog.length > 50) {
+                gameData.battle.battleLog.shift();
+            }
+            
+            updateBattleUI();
+        }
+
+        function playerAction(action) {
+            if (!gameData.battle.currentEnemy) return;
+            
+            // Обрабатываем действие игрока
+            switch (action) {
+                case 'attack':
+                    performPlayerAttack();
+                    break;
+                case 'defend':
+                    performPlayerDefend();
+                    break;
+                case 'super':
+                    performPlayerSuper();
+                    break;
+                case 'heal':
+                    performPlayerHeal();
+                    break;
+                case 'item':
+                    // В реальной игре здесь был бы выбор предмета
+                    alert('В полной версии здесь будет выбор предмета из инвентаря');
+                    return;
+                case 'escape':
+                    performPlayerEscape();
+                    return;
+            }
+            
+            // Проверяем, не закончилась ли битва
+            if (gameData.battle.currentEnemy.health <= 0) {
+                playerWin();
+                return;
+            }
+            
+            // Ход врага
+            enemyTurn();
+            
+            // Проверяем, не проиграл ли игрок
+            if (gameData.player.health <= 0) {
+                playerLose();
+                return;
+            }
+        }
+
+        function performPlayerAttack() {
+            const player = gameData.player;
+            const enemy = gameData.battle.currentEnemy;
+            
+            // Проверяем критический удар
+            const isCritical = Math.random() * 100 < player.critChance;
+            let damage = player.attack;
+            
+            if (isCritical) {
+                damage = Math.floor(damage * (player.critDamage / 100));
+                addBattleLog(`⚡ Критический удар! Хаместер атакует и наносит ${damage} урона!`);
+                
+                // Анимация критического удара
+                document.getElementById('enemy-avatar').classList.add('critical-animation');
+                setTimeout(() => {
+                    document.getElementById('enemy-avatar').classList.remove('critical-animation');
+                }, 500);
+            } else {
+                addBattleLog(`⚔️ Хаместер атакует и наносит ${damage} урона!`);
+                
+                // Анимация обычного урона
+                document.getElementById('enemy-avatar').classList.add('damage-animation');
+                setTimeout(() => {
+                    document.getElementById('enemy-avatar').classList.remove('damage-animation');
+                }, 500);
+            }
+            
+            // Учитываем защиту врага
+            if (gameData.battle.enemyDefending) {
+                damage = Math.max(1, Math.floor(damage / 2));
+                addBattleLog(`🛡️ ${enemy.name} защищается, урон уменьшен!`);
+                gameData.battle.enemyDefending = false;
+            }
+            
+            // Наносим урон врагу
+            enemy.health = Math.max(0, enemy.health - damage);
+        }
+
+        function performPlayerDefend() {
+            gameData.battle.playerDefending = true;
+            addBattleLog(`🛡️ Хаместер готовится к защите!`);
+        }
+
+        function performPlayerSuper() {
+            const player = gameData.player;
+            const enemy = gameData.battle.currentEnemy;
+            
+            // Супер-удар требует специальной энергии (в реальной игре)
+            const damage = Math.floor(player.attack * 1.5);
+            
+            addBattleLog(`💥 Хаместер использует супер-удар и наносит ${damage} урона!`);
+            
+            // Анимация супер-удара
+            document.getElementById('enemy-avatar').classList.add('critical-animation');
+            setTimeout(() => {
+                document.getElementById('enemy-avatar').classList.remove('critical-animation');
+            }, 500);
+            
+            // Учитываем защиту врага
+            if (gameData.battle.enemyDefending) {
+                const reducedDamage = Math.max(1, Math.floor(damage / 2));
+                addBattleLog(`🛡️ ${enemy.name} защищается, урон уменьшен!`);
+                gameData.battle.enemyDefending = false;
+            }
+            
+            // Наносим урон врагу
+            enemy.health = Math.max(0, enemy.health - damage);
+        }
+
+        function performPlayerHeal() {
+            const player = gameData.player;
+            const healAmount = Math.floor(player.maxHealth * 0.3);
+            
+            player.health = Math.min(player.maxHealth, player.health + healAmount);
+            
+            addBattleLog(`❤️ Хаместер восстанавливает ${healAmount} здоровья!`);
+            
+            // Анимация лечения
+            document.getElementById('player-avatar').classList.add('heal-animation');
+            setTimeout(() => {
+                document.getElementById('player-avatar').classList.remove('heal-animation');
+            }, 500);
+        }
+
+        function performPlayerEscape() {
+            const escapeChance = 70; // 70% шанс побега
+            
+            if (Math.random() * 100 < escapeChance) {
+                addBattleLog(`🏃 Хаместер успешно сбежал с поля боя!`);
+                setTimeout(() => {
+                    showScreen('main-menu');
+                }, 1500);
+            } else {
+                addBattleLog(`🏃 Попытка побега не удалась!`);
+                enemyTurn();
+            }
+        }
+
+        function enemyTurn() {
+            const enemy = gameData.battle.currentEnemy;
+            
+            // Простой ИИ для врага
+            const actions = ['attack', 'defend'];
+            const randomAction = actions[Math.floor(Math.random() * actions.length)];
+            
+            switch (randomAction) {
+                case 'attack':
+                    performEnemyAttack();
+                    break;
+                case 'defend':
+                    performEnemyDefend();
+                    break;
+            }
+        }
+
+        function performEnemyAttack() {
+            const player = gameData.player;
+            const enemy = gameData.battle.currentEnemy;
+            
+            let damage = enemy.attack;
+            
+            addBattleLog(`⚔️ ${enemy.name} атакует и наносит ${damage} урона!`);
+            
+            // Учитываем защиту игрока
+            if (gameData.battle.playerDefending) {
+                damage = Math.max(1, Math.floor(damage / 2));
+                addBattleLog(`🛡️ Хаместер защищается, урон уменьшен!`);
+                gameData.battle.playerDefending = false;
+            }
+            
+            // Наносим урон игроку
+            player.health = Math.max(0, player.health - damage);
+            
+            // Анимация получения урона
+            document.getElementById('player-avatar').classList.add('damage-animation');
+            setTimeout(() => {
+                document.getElementById('player-avatar').classList.remove('damage-animation');
+            }, 500);
+        }
+
+        function performEnemyDefend() {
+            gameData.battle.enemyDefending = true;
+            addBattleLog(`🛡️ ${gameData.battle.currentEnemy.name} готовится к защите!`);
+        }
+
+        function playerWin() {
+            const enemy = gameData.battle.currentEnemy;
+            
+            addBattleLog(`🎉 Победа! Хаместер одолел ${enemy.name}!`);
+            
+            // Награждаем игрока
+            gameData.currencies.coins += enemy.coinReward;
+            gameData.player.exp += enemy.expReward;
+            
+            addBattleLog(`🪙 Получено ${enemy.coinReward} монет!`);
+            addBattleLog(`⭐ Получено ${enemy.expReward} опыта!`);
+            
+            // Проверяем, не повысился ли уровень
+            checkLevelUp();
+            
+            // Обновляем балансы
+            updateBalances();
+            
+            // Сохраняем игру
+            saveGame();
+            
+            // Возвращаемся в главное меню через 3 секунды
+            setTimeout(() => {
+                showScreen('main-menu');
+            }, 3000);
+        }
+
+        function playerLose() {
+            addBattleLog(`💀 Поражение! Хаместер повержен...`);
+            
+            // Игрок теряет часть монет
+            const coinsLost = Math.floor(gameData.currencies.coins * 0.1);
+            gameData.currencies.coins = Math.max(0, gameData.currencies.coins - coinsLost);
+            
+            addBattleLog(`🪙 Потеряно ${coinsLost} монет!`);
+            
+            // Восстанавливаем здоровье игрока
+            gameData.player.health = gameData.player.maxHealth;
+            
+            // Обновляем балансы
+            updateBalances();
+            
+            // Сохраняем игру
+            saveGame();
+            
+            // Возвращаемся в главное меню через 3 секунды
+            setTimeout(() => {
+                showScreen('main-menu');
+            }, 3000);
+        }
+
+        function checkLevelUp() {
+            const player = gameData.player;
+            
+            if (player.exp >= player.expToNextLevel) {
+                player.level += 1;
+                player.exp -= player.expToNextLevel;
+                player.expToNextLevel = Math.floor(player.expToNextLevel * 1.2);
+                
+                // Увеличиваем характеристики
+                player.maxHealth += 10;
+                player.health = player.maxHealth;
+                player.attack += 2;
+                player.defense += 1;
+                player.speed += 1;
+                
+                // Увеличиваем шанс критического удара каждые 5 уровней
+                if (player.level % 5 === 0) {
+                    player.critChance += 1;
+                }
+                
+                addBattleLog(`🎊 Уровень повышен! Теперь у Хаместера ${player.level} уровень!`);
+                
+                // Проверяем достижения
+                checkAchievements();
+            }
+        }
+
+        // Функции для достижений
+        function loadAchievements() {
+            const achievementsContainer = document.getElementById('achievements-list');
+            achievementsContainer.innerHTML = '';
+            
+            gameData.achievements.forEach(achievement => {
+                const achievementElement = document.createElement('div');
+                achievementElement.className = `achievement-card ${achievement.completed ? '' : 'achievement-locked'}`;
+                
+                const progressPercent = (achievement.progress / achievement.maxProgress) * 100;
+                
+                achievementElement.innerHTML = `
+                    <div class="achievement-icon">${achievement.icon}</div>
+                    <div class="achievement-info">
+                        <div class="achievement-name">${achievement.name}</div>
+                        <div class="achievement-description">${achievement.description}</div>
+                        <div class="achievement-progress">
+                            <div class="achievement-progress-fill" style="width: ${progressPercent}%;"></div>
+                        </div>
+                        <div class="achievement-progress-text">${achievement.progress}/${achievement.maxProgress}</div>
+                    </div>
+                    ${achievement.completed ? '<div class="achievement-reward">✅</div>' : ''}
+                `;
+                
+                achievementsContainer.appendChild(achievementElement);
+            });
+        }
+
+        function checkAchievements() {
+            const player = gameData.player;
+            
+            // Проверяем достижение уровня 10
+            const levelAchievement = gameData.achievements.find(a => a.id === 'level_10');
+            if (levelAchievement && !levelAchievement.completed) {
+                levelAchievement.progress = player.level;
+                if (player.level >= levelAchievement.maxProgress) {
+                    levelAchievement.completed = true;
+                    awardAchievement(levelAchievement);
+                }
+            }
+            
+            // Проверяем достижение богатства
+            const richAchievement = gameData.achievements.find(a => a.id === 'rich_hamster');
+            if (richAchievement && !richAchievement.completed) {
+                richAchievement.progress = gameData.currencies.coins;
+                if (gameData.currencies.coins >= richAchievement.maxProgress) {
+                    richAchievement.completed = true;
+                    awardAchievement(richAchievement);
+                }
+            }
+        }
+
+        function awardAchievement(achievement) {
+            // Награждаем игрока
+            if (achievement.reward.coins) {
+                gameData.currencies.coins += achievement.reward.coins;
+            }
+            if (achievement.reward.crystals) {
+                gameData.currencies.crystals += achievement.reward.crystals;
+            }
+            
+            // Показываем уведомление
+            alert(`Достижение разблокировано: ${achievement.name}\nНаграда: ${achievement.reward.coins} 🪙, ${achievement.reward.crystals} 💎`);
+            
+            // Обновляем балансы
+            updateBalances();
+            
+            // Сохраняем игру
+            saveGame();
+        }
+
+        // Функции для кошелька
+        function loadTransactions() {
+            const transactionList = document.getElementById('transaction-list');
+            transactionList.innerHTML = '';
+            
+            if (gameData.transactions.length === 0) {
+                transactionList.innerHTML = '<div style="text-align: center; padding: 20px;">История транзакций пуста</div>';
+                return;
+            }
+            
+            gameData.transactions.forEach(transaction => {
+                const transactionElement = document.createElement('div');
+                transactionElement.className = 'transaction-item';
+                
+                const date = new Date(transaction.date).toLocaleDateString();
+                const amount = transaction.amount > 0 ? `+${transaction.amount}` : transaction.amount;
+                const typeClass = transaction.amount > 0 ? 'success' : 'danger';
+                
+                transactionElement.innerHTML = `
+                    <div>
+                        <div>${transaction.type}</div>
+                        <div style="font-size: 12px; color: #aaa;">${date}</div>
+                    </div>
+                    <div class="text-${typeClass}">${amount} ${transaction.currency}</div>
+                `;
+                
+                transactionList.appendChild(transactionElement);
+            });
+        }
+
+        function addTransaction(type, amount, currency) {
+            gameData.transactions.unshift({
+                type,
+                amount,
+                currency,
+                date: new Date().toISOString()
+            });
+            
+            // Ограничиваем историю 20 транзакциями
+            if (gameData.transactions.length > 20) {
+                gameData.transactions.pop();
+            }
+            
+            loadTransactions();
+        }
+
+        function depositTON() {
+            // В реальном приложении здесь была бы интеграция с Telegram Wallet
+            const amount = 10; // Тестовое пополнение
+            
+            gameData.currencies.ton += amount;
+            addTransaction('Пополнение TON', amount, 'TON');
+            
+            updateBalances();
+            saveGame();
+            
+            alert(`Баланс TON пополнен на ${amount} TON!`);
+        }
+
+        function depositUSDT() {
+            // В реальном приложении здесь была бы интеграция с Telegram Wallet
+            const amount = 50; // Тестовое пополнение
+            
+            gameData.currencies.usdt += amount;
+            addTransaction('Пополнение USDT', amount, 'USDT');
+            
+            updateBalances();
+            saveGame();
+            
+            alert(`Баланс USDT пополнен на ${amount} USDT!`);
+        }
+
+        function withdrawTON() {
+            if (gameData.currencies.ton <= 0) {
+                alert('Недостаточно TON для вывода!');
+                return;
+            }
+            
+            // В реальном приложении здесь была бы интеграция с Telegram Wallet
+            const amount = Math.min(5, gameData.currencies.ton); // Тестовый вывод
+            
+            gameData.currencies.ton -= amount;
+            addTransaction('Вывод TON', -amount, 'TON');
+            
+            updateBalances();
+            saveGame();
+            
+            alert(`Выведено ${amount} TON на ваш кошелек!`);
+        }
+
+        function withdrawUSDT() {
+            if (gameData.currencies.usdt <= 0) {
+                alert('Недостаточно USDT для вывода!');
+                return;
+            }
+            
+            // В реальном приложении здесь была бы интеграция с Telegram Wallet
+            const amount = Math.min(25, gameData.currencies.usdt); // Тестовый вывод
+            
+            gameData.currencies.usdt -= amount;
+            addTransaction('Вывод USDT', -amount, 'USDT');
+            
+            updateBalances();
+            saveGame();
+            
+            alert(`Выведено ${amount} USDT на ваш кошелек!`);
+        }
+
+        // Функции сохранения и загрузки
+        function saveGame() {
+            try {
+                localStorage.setItem('hamsterCombatSave', JSON.stringify(gameData));
+                console.log('Игра сохранена');
+            } catch (e) {
+                console.error('Ошибка при сохранении игры:', e);
+            }
+        }
+
+        function loadGame() {
+            try {
+                const savedData = localStorage.getItem('hamsterCombatSave');
+                if (savedData) {
+                    gameData = JSON.parse(savedData);
+                    updateBalances();
+                    alert('Игра загружена!');
+                } else {
+                    alert('Сохранение не найдено!');
+                }
+            } catch (e) {
+                console.error('Ошибка при загрузке игры:', e);
+                alert('Ошибка при загрузке сохранения!');
+            }
+        }
+
+        function resetGame() {
+            if (confirm('Вы уверены, что хотите сбросить весь прогресс? Это действие нельзя отменить!')) {
+                try {
+                    localStorage.removeItem('hamsterCombatSave');
+                    location.reload();
+                } catch (e) {
+                    console.error('Ошибка при сбросе игры:', e);
+                }
+            }
+        }
+
+        // Автосохранение каждые 30 секунд
+        setInterval(() => {
+            if (gameData.settings.autosave) {
+                saveGame();
+            }
+        }, 30000);
+
+        // Инициализация игры при загрузке
+        window.onload = function() {
+            loadGame();
+            updateBalances();
+            
+            // Проверяем, запущено ли приложение в Telegram
+            if (tg) {
+                // Настройка Telegram Web App
+                tg.MainButton.setText('Играть в Хаместер Комбат');
+                tg.MainButton.show();
+                
+                // Обработчик нажатия на основную кнопку
+                tg.MainButton.onClick(() => {
+                    showScreen('battle-screen');
+                });
+            }
+        };
+    </script>
+</body>
+</html>
